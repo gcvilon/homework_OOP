@@ -18,9 +18,22 @@ class Student:
         return (f'Имя: {self.name}\n'
                 f'Фамилия: {self.surname}\n'
                 f'Средняя оценка за домашние задания: {average_rating}\n'
-                f'Курсы в процессе изучения: {', '.join(self.courses_in_progress)}\n'
-                f'Завершенные курсы: {', '.join(self.finished_courses)}'
+                f'Курсы в процессе изучения: {", ".join(self.courses_in_progress)}\n'
+                f'Завершенные курсы: {", ".join(self.finished_courses)}'
         )
+
+    def __lt__(self, other):
+        """Сравнение студентов по средней оценке за домашние задания"""
+        if not isinstance(other, Student):
+            return NotImplemented
+        return self.average_rating() < other.average_rating()
+
+    def average_rating(self):
+        """Средняя оценка за домашние задания"""
+        ratings = [
+            grade for grades in self.grades.values() for grade in grades
+        ]
+        return sum(ratings) / len(ratings) if ratings else 0
 
     def rate_lectures(self, lectures, course, grade):
         if isinstance(lectures, Lectures) and course in self.courses_in_progress:
@@ -58,6 +71,19 @@ class Lectures(Mentor):
             f'Средняя оценка на лекции: {average_rating}'
         )
 
+    def __lt__(self, other):
+        """Сравнение лекторов по средней оценке за лекции"""
+        if not isinstance(other, Lectures):
+            return NotImplemented
+        return self.average_rating() < other.average_rating()
+
+    def average_rating(self):
+        """Средняя оценка за лекции"""
+        ratings = [
+            grade for grades in self.list_ratings.values() for grade in grades
+        ]
+        return sum(ratings) / len(ratings) if ratings else 0
+
 
 class Reviewer(Mentor):
     def __str__(self):
@@ -75,34 +101,21 @@ class Reviewer(Mentor):
         else:
             return 'Ошибка'
 
-def rating_course(students, course):
-    summ_rate, count_rate = 0, 0
-    for student in students:
-        summ_rate += student.grades[course][0]
-        count_rate += 1
-    return summ_rate / count_rate
 
-def rating_lectures(lectures, course):
-    summ_rate, count_rate = 0, 0
-    for lecturer in lectures:
-        summ_rate += lecturer.list_ratings[course][0]
-        count_rate += 1
-    return summ_rate / count_rate
-
-
+# Пример сравнения
 student_1 = Student('Artem', 'Deev', 'male')
 student_1.courses_in_progress += ['Python', 'Git']
 student_2 = Student('Julia', 'Lopacheva', 'female')
-student_2.courses_in_progress += ['Java', 'English']
+student_2.courses_in_progress += ['Python', 'English']
 
 lectures_1 = Lectures('Mikhail', 'Eremin')
 lectures_1.courses_attached += ['Python', 'Git']
 lectures_2 = Lectures('Nikita', 'Zaycev')
-lectures_2.courses_attached += ['Java', 'English']
+lectures_2.courses_attached += ['Python', 'English']
 
 student_1.rate_lectures(lectures_1, 'Python', 8)
 student_1.rate_lectures(lectures_1, 'Git', 10)
-student_2.rate_lectures(lectures_2, 'Java', 9)
+student_2.rate_lectures(lectures_2, 'Python', 9)
 student_2.rate_lectures(lectures_2, 'English', 8)
 
 reviewer_1 = Reviewer('Elena', "Serikova")
@@ -110,6 +123,9 @@ reviewer_1.courses_attached += ['Python', 'Git']
 reviewer_1.rate_student(student_1, 'Python', 9)
 reviewer_1.rate_student(student_1, 'Git', 8)
 reviewer_2 = Reviewer('Artem', 'Babeshkov')
-reviewer_2.courses_attached += ['Java', 'English']
-reviewer_2.rate_student(student_2, 'Java', 10)
+reviewer_2.courses_attached += ['Python', 'English']
+reviewer_2.rate_student(student_2, 'Python', 10)
 reviewer_2.rate_student(student_2, 'English', 9)
+
+print(student_1 < student_2)  # Сравнение студентов
+print(lectures_1 < lectures_2)  # Сравнение лекторов
